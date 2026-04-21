@@ -79,7 +79,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
       backgroundColor: AppTheme.bgColor,
       // ─── AppBar ──────────────────────────────────────────
       appBar: AppBar(
-        title: const Text("👁️ Object Finder"),
+        title: Row(
+          children: [
+            const Icon(Icons.remove_red_eye_rounded, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            const Text("Object Finder"),
+          ],
+        ),
         actions: [
           // Bouton langue FR ↔ TN
           Semantics(

@@ -1,0 +1,182 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme.dart';
+import '../../../widgets/detection_card.dart';
+import '../../../widgets/loading_overlay.dart';
+import '../providers/history_provider.dart';
+import '../../auth/providers/auth_provider.dart';
+
+class HistoryScreen extends ConsumerStatefulWidget {
+  const HistoryScreen({super.key});
+
+  @override
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends ConsumerState<HistoryScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    final historyState = ref.watch(historyProvider);
+    final authState = ref.watch(authProvider);
+
+    // ─── Snackbar sync/erreur
+    ref.listen<HistoryState>(historyProvider, (_, next) {
+      if (next.syncMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.syncMessage!),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      if (next.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+
+    return Scaffold(
+      backgroundColor: AppTheme.bgColor,
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const Icon(Icons.history_rounded, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            const Text("Historique"),
+          ],
+        ),
+        actions: [
+          // ─── Bouton sync cloud
+          if (authState.isAuthenticated)
+            Semantics(
+              label: "Synchroniser avec le cloud",
+              button: true,
+              child: IconButton(
+                onPressed: historyState.isSyncing
+                    ? null
+                    : () => ref.read(historyProvider.notifier).syncToBackend(),
+                icon: historyState.isSyncing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Icon(Icons.cloud_upload_rounded),
+                tooltip: "Synchroniser",
+              ),
+            ),
+
+          // ─── Bouton vider
+          if (historyState.detections.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded),
+              tooltip: "Vider l'historique",
+              onPressed: () => _confirmClear(context),
+            ),
+        ],
+      ),
+      body: LoadingOverlay(
+        isLoading: historyState.isLoading,
+        message: "Chargement...",
+        child: _buildBody(historyState),
+      ),
+    );
+  }
+
+  // ─── Body
+  Widget _buildBody(HistoryState state) {
+    if (state.detections.isEmpty) return _buildEmpty();
+
+    return RefreshIndicator(
+      color: AppTheme.primaryColor,
+      onRefresh: () => ref.read(historyProvider.notifier).loadHistory(),
+      child: ListView.builder(
+        itemBuilder: (_, index) => DetectionCard(
+          detection: state.detections[index],
+          showTimestamp: true,
+        ),
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
+        itemCount: state.detections.length,
+      ),
+    );
+  }
+
+  // ─── État vide
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.history_rounded,
+            size: 72,
+            color: Colors.white.withAlpha(51),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "Aucune détection enregistrée",
+            style: TextStyle(color: Colors.white54, fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Lance le scanner pour commencer",
+            style: TextStyle(color: Colors.white38, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Confirmer suppression
+  Future<void> _confirmClear(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: const Text(
+          "Vider l'historique",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          "Supprimer toutes les détections locales ?",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Annuler"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Supprimer"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Supprimer",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ]
+      ),
+    );
+    if (confirmed == true) {
+      ref.read(historyProvider.notifier).clearHistory();
+    }
+  }
+}

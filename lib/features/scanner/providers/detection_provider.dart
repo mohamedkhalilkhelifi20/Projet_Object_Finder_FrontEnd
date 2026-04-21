@@ -6,6 +6,7 @@ import '../../../models/detection_model.dart';
 import '../services/api_service.dart';
 import '../services/tts_service.dart';
 import '../services/vibration_service.dart';
+import '../../../core/sqlite_service.dart';
 import 'camera_provider.dart';
 
 // ─── State ───────────────────────────────────────────────
@@ -105,6 +106,7 @@ class DetectionNotifier extends Notifier<DetectionState> {
 
       if (detections.isNotEmpty) {
         final top = detections.first;
+        await SqliteService.instance.insertDetection(top);
         await VibrationService.instance.vibrateForDanger(top.dangerLevel);
         await TtsService.instance.speakDetection(
           voiceMessage: top.voiceMessage,

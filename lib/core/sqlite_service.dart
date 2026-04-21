@@ -53,6 +53,15 @@ class SqliteService {
     return rows.map(DetectionModel.fromMap).toList();
   }
 
+  Future<void> deleteDetection(int id) async {
+    final database = await db;
+    await database.delete(
+      'detections',
+      where:     'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   // ─── Sync backend
   Future<List<DetectionModel>> getUnsyncedDetections() async {
     final database = await db;

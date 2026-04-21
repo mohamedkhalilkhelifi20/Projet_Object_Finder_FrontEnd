@@ -148,31 +148,38 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppTheme.surfaceColor,
-        title: const Text(
-          "Vider l'historique",
-          style: TextStyle(color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_rounded, color: Colors.red, size: 24),
+            SizedBox(width: 8),
+            Text("Vider l'historique", style: TextStyle(color: Colors.white)),
+          ],
         ),
         content: const Text(
-          "Supprimer toutes les détections locales ?",
+          "Toutes les détections locales seront supprimées définitivement.",
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
-          TextButton(
+          // ─── Annuler
+          OutlinedButton(
             onPressed: () => Navigator.pop(context, false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white38),
+            ),
             child: const Text("Annuler"),
           ),
-          TextButton(
+          // ─── Supprimer
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: const Text("Supprimer"),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              "Supprimer",
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ]
+       ],
       ),
     );
     if (confirmed == true) {

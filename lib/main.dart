@@ -14,7 +14,6 @@ import 'features/history/screens/history_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'features/history/providers/history_provider.dart';
-
 void main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -67,13 +66,18 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
+  late final List<Widget> _screens;
   int _currentIndex = 0;
 
   // Les écrans restent en mémoire grâce à IndexedStack
-  final List<Widget> _screens = const [
-    ScannerScreen(),
-    HistoryScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      ScannerScreen(onNavigateToHistory: () => setState(() => _currentIndex = 1)),
+      const HistoryScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

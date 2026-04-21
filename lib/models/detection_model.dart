@@ -1,4 +1,5 @@
 class DetectionModel {
+  final int? id;
   final String label; // label anglais (ex: "chair")
   final String labelTraduit; // label traduit (ex: "chaise" / "كرسي")
   final double confidence;
@@ -9,6 +10,7 @@ class DetectionModel {
   final bool synced;
 
   const DetectionModel({
+    this.id,
     required this.label,
     required this.labelTraduit,
     required this.confidence,
@@ -22,8 +24,9 @@ class DetectionModel {
   // Miroir exact du JSON retourné par yolo_service.py
   factory DetectionModel.fromJson(Map<String, dynamic> json) {
     return DetectionModel(
+      id:             json['id']              as int?,
       label:          json['label']           as String? ?? '',
-      labelTraduit:   json['label_fr']        as String? ?? '', // ✅ label_fr
+      labelTraduit:   json['label_fr']        as String? ?? '', // label_fr
       confidence:     (json['confidence']     as num?)?.toDouble() ?? 0.0,
       distanceMeters: (json['distance_meters'] as num?)?.toDouble() ?? 0.0,
       dangerLevel:    json['danger_level']    as String? ?? 'OK',

@@ -10,7 +10,9 @@ import '../providers/camera_provider.dart';
 import '../providers/detection_provider.dart';
 
 class ScannerScreen extends ConsumerStatefulWidget {
-  const ScannerScreen({super.key});
+  final VoidCallback? onNavigateToHistory;
+
+  const ScannerScreen({super.key, this.onNavigateToHistory});
 
   @override
   ConsumerState<ScannerScreen> createState() => _ScannerScreenState();
@@ -367,11 +369,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
           ),
 
           ListTile(
-            leading: const Icon(Icons.history_rounded,
-                color: Colors.white54),
-            title: const Text("Historique",
-                style: TextStyle(color: Colors.white)),
-            onTap: () => Navigator.pop(context),
+            leading: const Icon(Icons.history_rounded, color: Colors.white54),
+            title:   const Text("Historique", style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);               // fermer drawer
+              widget.onNavigateToHistory?.call();   // switch vers onglet History
+            },
           ),
 
           const Divider(color: Colors.white12),

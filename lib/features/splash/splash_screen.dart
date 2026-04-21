@@ -45,11 +45,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   void _navigate() {
     if (!mounted) return;
-
     final authState = ref.read(authProvider);
-
     if (authState.isAuthenticated) {
-      Navigator.pushReplacementNamed(context, '/scanner');
+      Navigator.pushReplacementNamed(context, '/main'); 
     } else {
       Navigator.pushReplacementNamed(context, '/login');
     }

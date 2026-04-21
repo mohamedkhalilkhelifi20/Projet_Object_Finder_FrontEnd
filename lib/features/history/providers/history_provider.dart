@@ -82,11 +82,12 @@ class HistoryNotifier extends Notifier<HistoryState> {
       );
 
       if (success) {
-        // Marquer chaque détection comme synced
-        for (int i = 0; i < unsynced.length; i++) {
-          await SqliteService.instance.markAsSynced(i + 1);
+        // Utiliser l'id réel SQLite
+        for (final d in unsynced) {
+          if (d.id != null) {
+            await SqliteService.instance.markAsSynced(d.id!);
+          }
         }
-
         await loadHistory(); // Recharger pour mettre à jour l'état
         state = state.copyWith(
           isSyncing: false,
@@ -101,6 +102,13 @@ class HistoryNotifier extends Notifier<HistoryState> {
     } catch (e) {
       state = state.copyWith(isSyncing: false, error: e.toString());
     }
+  }
+
+  Future<void> deleteDetection(int id) async {
+    await SqliteService.instance.deleteDetection(id);
+    state = state.copyWith(
+       detections: state.detections.where((d) => d.id != id).toList(),
+    );
   }
 
   // ─── Vider l'historique

@@ -22,14 +22,16 @@ class DetectionModel {
   // Miroir exact du JSON retourné par yolo_service.py
   factory DetectionModel.fromJson(Map<String, dynamic> json) {
     return DetectionModel(
-      label:          json['label']          as String,
-      labelTraduit:   json['label_traduit']  as String,
-      confidence:     (json['confidence']    as num).toDouble(),
-      distanceMeters: (json['distance_meters'] as num).toDouble(),
-      dangerLevel:    json['danger_level']   as String,
-      voiceMessage:   json['voice_message']  as String,
-      timestamp:      DateTime.now(),
-      synced:         false,
+      label:          json['label']           as String? ?? '',
+      labelTraduit:   json['label_fr']        as String? ?? '', // ✅ label_fr
+      confidence:     (json['confidence']     as num?)?.toDouble() ?? 0.0,
+      distanceMeters: (json['distance_meters'] as num?)?.toDouble() ?? 0.0,
+      dangerLevel:    json['danger_level']    as String? ?? 'OK',
+      voiceMessage:   json['voice_message']   as String? ?? '',
+      timestamp:      json['detected_at'] != null 
+          ? DateTime.parse(json['detected_at'] as String)
+          : DateTime.now(),
+      synced: false,
     );
   }
 
@@ -50,14 +52,14 @@ class DetectionModel {
   // ─── Factory : depuis SQLite
   factory DetectionModel.fromMap(Map<String, dynamic> map) {
     return DetectionModel(
-      label:          map['label']           as String,
-      labelTraduit:   map['label_traduit']   as String,
-      confidence:     (map['confidence']     as num).toDouble(),
-      distanceMeters: (map['distance_meters'] as num).toDouble(),
-      dangerLevel:    map['danger_level']    as String,
-      voiceMessage:   map['voice_message']   as String,
+      label:          map['label']            as String? ?? '',
+      labelTraduit:   map['label_traduit']    as String? ?? '',
+      confidence:     (map['confidence']      as num?)?.toDouble() ?? 0.0,
+      distanceMeters: (map['distance_meters'] as num?)?.toDouble() ?? 0.0,
+      dangerLevel:    map['danger_level']     as String? ?? 'OK',
+      voiceMessage:   map['voice_message']    as String? ?? '',
       timestamp:      DateTime.parse(map['timestamp'] as String),
-      synced:         (map['synced'] as int) == 1,
+      synced:         (map['synced'] as int?) == 1,
     );
   }
 

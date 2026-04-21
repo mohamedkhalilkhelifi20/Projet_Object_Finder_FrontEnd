@@ -52,3 +52,14 @@ firebase.json
 GoogleService-Info.plist
 .firebase/
 firebase-debug.log
+
+.env
+android/app/google-services.json
+
+# .gitattributes
+* text=auto
+*.dart text eol=lf
+*.gradle.kts text eol=lf
+*.json text eol=lf
+*.lock text eol=lf
+*.html text eol=lf

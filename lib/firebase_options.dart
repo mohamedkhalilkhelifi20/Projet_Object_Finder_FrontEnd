@@ -58,7 +58,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '108836461714',
     projectId: 'projet-object-finder',
     storageBucket: 'projet-object-finder.firebasestorage.app',
-  );
+    authDomain: 'projet-object-finder.firebaseapp.com',
+);
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyB1kNqiR3h9TPy396ms5YBgbjTYvg8sP4M',

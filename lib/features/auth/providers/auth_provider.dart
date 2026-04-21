@@ -67,29 +67,29 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   // ─── Connexion Google SSO
-  Future<void> signInWithGoogle() async {
-    // Afficher loading
-    state = state.copyWith(isLoading: true);
+ Future<void> signInWithGoogle() async {
+  state = state.copyWith(isLoading: true);
 
-    try {
-      final data = await _authService.signInWithGoogle();
-
-      // Connexion réussie → mettre à jour le state
-      state = state.copyWith(
-        isAuthenticated: true,
-        isLoading:       false,
-        token:           data['access_token'],
-        userEmail:       data['email'],
-        userName:        data['name'],
-      );
-    } catch (e) {
-      // Erreur → afficher message
-      state = state.copyWith(
-        isLoading: false,
-        error:     e.toString(),
-      );
+  try {
+    print('🔵 Début signInWithGoogle');
+    final data = await _authService.signInWithGoogle();
+    print('✅ Data reçue : $data');
+    state = state.copyWith(
+      isAuthenticated: true,
+      isLoading:       false,
+      token:           data['access_token'],
+      userEmail:       data['email'],
+      userName:        data['name'],
+    );
+  } catch (e) {
+    print('❌ Erreur : $e');
+    if (e.toString().contains('canceled')) {
+      state = state.copyWith(isLoading: false);
+      return;
     }
+    state = state.copyWith(isLoading: false, error: e.toString());
   }
+}
 
   // ─── Déconnexion ─────────────────────────────────────
   Future<void> signOut() async {

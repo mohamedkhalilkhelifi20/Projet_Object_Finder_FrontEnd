@@ -48,6 +48,7 @@ dependencies:
   firebase_auth: ^6.4.0
   google_sign_in: ^7.2.0
   flutter_native_splash: ^2.4.7
+  flutter_dotenv: ^6.0.0
   
 
 dev_dependencies:
@@ -71,6 +72,8 @@ flutter_native_splash:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - .env
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

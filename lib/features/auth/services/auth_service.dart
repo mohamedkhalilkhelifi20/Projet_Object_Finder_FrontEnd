@@ -1,38 +1,36 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants.dart';
 
 class AuthService {
-  // ─── Instances ───────────────────────────────────────
-  final _googleSignIn = GoogleSignIn.instance;
+  // ─── Instance Firebase ───────────────────────────────
   final _firebaseAuth = FirebaseAuth.instance;
 
-  // ─── Clés SharedPreferences ──────────────────────────
-  static const String _keyToken = 'jwt_token';
-  static const String _keyUser = 'user_data';
-
+  // ============================================================
   // 1. CONNEXION GOOGLE SSO
+  // ============================================================
   Future<Map<String, dynamic>> signInWithGoogle() async {
+    print('🔵 Step 1 — Firebase Google SignIn');
+    final GoogleAuthProvider googleProvider = GoogleAuthProvider()
+      ..addScope('email')
+      ..addScope('profile');
 
-    // Étape 1 — Ouvrir popup Google
-    final googleUser = await _googleSignIn.authenticate();
+    print('🔵 Step 2 — signInWithProvider');
+    final UserCredential userCredential =
+        await _firebaseAuth.signInWithProvider(googleProvider);
 
-    // Étape 2 — Récupérer tokens Google
-    final googleAuth = googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
+    print('🔵 Step 3 — getIdToken');
+    final String? idToken = await userCredential.user!.getIdToken();
+    final String email    = userCredential.user!.email ?? '';
+    final String name     = userCredential.user!.displayName ?? '';
 
-    // Étape 3 — Authentifier avec Firebase
-    final userCredential = await _firebaseAuth.signInWithCredential(credential);
-    final idToken = await userCredential.user!.getIdToken();
-
-    // Étape 4 — Envoyer à FastAPI
+    print('🔵 Step 4 — Envoyer à FastAPI');
     final response = await http.post(
       Uri.parse('${AppConstants.baseUrl}/auth/google'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id_token': idToken}),
+      body:    jsonEncode({'id_token': idToken}),
     );
 
     if (response.statusCode != 200) {
@@ -41,60 +39,62 @@ class AuthService {
 
     final data = jsonDecode(response.body);
 
-    // Étape 5 — Sauvegarder données localement
-    // JWT token simple
     await _saveToken(data['access_token']);
-
-    // User data en JSON
-    await _saveUserData({'email': data['email'], 'name': data['name']});
+    await _saveUserData({'email': email, 'name': name});
 
     return data;
   }
 
-  // SAVE TOKEN
+  // ============================================================
+  // 2. SAVE TOKEN — comme saveData() du prof
+  // ============================================================
   Future<void> _saveToken(String token) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyToken, token);
+    await prefs.setString(AppConstants.keyJwtToken, token);
   }
 
-  // SAVE USER DATA en JSON
+  // ============================================================
+  // 3. SAVE USER DATA en JSON — comme saveCart() du prof
+  // ============================================================
   Future<void> _saveUserData(Map<String, dynamic> userData) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    // Convertir objet → JSON avant sauvegarder
     final String encodedData = json.encode(userData);
-    await prefs.setString(_keyUser, encodedData);
+    await prefs.setString(AppConstants.keyUserData, encodedData);
   }
 
-  // LOAD TOKEN
+  // ============================================================
+  // 4. LOAD TOKEN — comme chargerData() du prof
+  // ============================================================
   Future<String?> getToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyToken);
+    return prefs.getString(AppConstants.keyJwtToken);
   }
 
-  // LOAD USER DATA
+  // ============================================================
+  // 5. LOAD USER DATA — comme loadCart() du prof
+  // ============================================================
   Future<Map<String, dynamic>?> getUserData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? userData = prefs.getString(_keyUser);
-
+    final String? userData = prefs.getString(AppConstants.keyUserData);
     if (userData != null) {
-      // JSON → objet
       return json.decode(userData) as Map<String, dynamic>;
     }
     return null;
   }
 
-  // VÉRIFIER SI CONNECTÉ — containsKey
+  // ============================================================
+  // 6. VÉRIFIER SI CONNECTÉ — containsKey comme le prof
+  // ============================================================
   Future<bool> isLoggedIn() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_keyToken);
+    return prefs.containsKey(AppConstants.keyJwtToken);
   }
 
-  // DÉCONNEXION — clear(
-   Future<void> signOut() async {
-    await _googleSignIn.disconnect();
+  // ============================================================
+  // 7. DÉCONNEXION — clear() comme le prof
+  // ============================================================
+  Future<void> signOut() async {
     await _firebaseAuth.signOut();
-
-    // Effacer LocalStorage
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }

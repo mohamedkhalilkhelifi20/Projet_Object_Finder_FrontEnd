@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -10,24 +10,26 @@ class LoginScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     // ─── Écouter les changements d'état ──────────────
-    ref.listen(authProvider, (previous, next) {
-      // Connexion réussie → aller au Scanner
-      if (next.isAuthenticated) {
+    if (authState.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/scanner');
-      }
-      // Erreur → afficher Snackbar (comme le prof)
-      if (next.error != null) {
+      });
+    }
+
+    // Erreur → Snackbar
+    if (authState.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:          Text(next.error!),
-            backgroundColor:  Colors.red,
-            behavior:         SnackBarBehavior.floating,
-            duration:         const Duration(seconds: 3),
+            content:         Text(authState.error!),
+            backgroundColor: Colors.red,
+            behavior:        SnackBarBehavior.floating,
+            duration:        const Duration(seconds: 3),
           ),
         );
-      }
-    });
-
+      });
+    }
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(

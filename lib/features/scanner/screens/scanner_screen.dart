@@ -8,6 +8,7 @@ import '../../../widgets/danger_badge.dart';
 import '../../../widgets/loading_overlay.dart';
 import '../providers/camera_provider.dart';
 import '../providers/detection_provider.dart';
+import '../../../widgets/app_drawer.dart';
 
 class ScannerScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToHistory;
@@ -109,7 +110,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
       ),
 
       // ─── Drawer ──────────────────────────────────────────
-      drawer: _buildDrawer(),
+      drawer: AppDrawer(
+        selectedLang:        _selectedLang,
+        onToggleLang:        _toggleLang,
+        onNavigateToHistory: widget.onNavigateToHistory,
+      ),
       // ─── Body ────────────────────────────────────────────
       body: LoadingOverlay(
         isLoading: !cameraState.isInitialized && cameraState.error == null,
@@ -325,82 +330,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     );
   }
 
-  // ─── Drawer ──────────────────────────────────────────────
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: AppTheme.surfaceColor,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: AppTheme.bgColor),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment:  MainAxisAlignment.end,
-              children: [
-                const Icon(Icons.remove_red_eye_rounded,
-                    color: AppTheme.primaryColor, size: 48),
-                const SizedBox(height: 8),
-                const Text(
-                  "Object Finder",
-                  style: TextStyle(
-                    color: Colors.white, fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  "Assistance malvoyants",
-                  style: TextStyle(
-                    color:    Colors.white.withAlpha(153),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          ListTile(
-            leading: const Icon(Icons.camera_alt_rounded,
-                color: AppTheme.primaryColor),
-            title: const Text("Scanner",
-                style: TextStyle(color: Colors.white)),
-            selected: true,
-            onTap: () => Navigator.pop(context),
-          ),
-
-          ListTile(
-            leading: const Icon(Icons.history_rounded, color: Colors.white54),
-            title:   const Text("Historique", style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(context);               // fermer drawer
-              widget.onNavigateToHistory?.call();   // switch vers onglet History
-            },
-          ),
-
-          const Divider(color: Colors.white12),
-
-          ListTile(
-            leading: const Icon(Icons.language_rounded,
-                color: Colors.white54),
-            title: const Text("Langue",
-                style: TextStyle(color: Colors.white)),
-            trailing: Text(
-              _selectedLang == AppConstants.langFr ? "FR" : "TN",
-              style: const TextStyle(
-                color:      AppTheme.primaryColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              _toggleLang();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   // ─── Erreur caméra ───────────────────────────────────────
   Widget _buildError(String error) {
     return Center(

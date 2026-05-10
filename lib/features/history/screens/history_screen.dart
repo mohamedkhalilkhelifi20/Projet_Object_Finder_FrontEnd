@@ -4,7 +4,7 @@ import '../../../core/theme.dart';
 import '../../../widgets/detection_card.dart';
 import '../../../widgets/loading_overlay.dart';
 import '../providers/history_provider.dart';
-import '../../auth/providers/auth_provider.dart';
+
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -23,7 +23,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
     super.build(context);
 
     final historyState = ref.watch(historyProvider);
-    final authState = ref.watch(authProvider);
 
     // ─── Snackbar sync/erreur
     ref.listen<HistoryState>(historyProvider, (_, next) {
@@ -58,29 +57,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
           ],
         ),
         actions: [
-          // ─── Bouton sync cloud
-          if (authState.isAuthenticated)
-            Semantics(
-              label: "Synchroniser avec le cloud",
-              button: true,
-              child: IconButton(
-                onPressed: historyState.isSyncing
-                    ? null
-                    : () => ref.read(historyProvider.notifier).syncToBackend(),
-                icon: historyState.isSyncing
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Icon(Icons.cloud_upload_rounded),
-                tooltip: "Synchroniser",
-              ),
-            ),
-
+         
           // ─── Bouton vider
           if (historyState.detections.isNotEmpty)
             IconButton(

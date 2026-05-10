@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   // ─── Instance Firebase ───────────────────────────────
@@ -11,39 +12,45 @@ class AuthService {
   // ============================================================
   // 1. CONNEXION GOOGLE SSO
   // ============================================================
-  Future<Map<String, dynamic>> signInWithGoogle() async {
-    print('🔵 Step 1 — Firebase Google SignIn');
-    final GoogleAuthProvider googleProvider = GoogleAuthProvider()
-      ..addScope('email')
-      ..addScope('profile');
+Future<Map<String, dynamic>> signInWithGoogle() async {
+  final googleSignIn = GoogleSignIn.instance;
 
-    print('🔵 Step 2 — signInWithProvider');
-    final UserCredential userCredential =
-        await _firebaseAuth.signInWithProvider(googleProvider);
+  // ─── v7.x requiert initialize avec serverClientId sur Android
+  await googleSignIn.initialize(
+    serverClientId: AppConstants.googleWebClientId,
+  );
 
-    print('🔵 Step 3 — getIdToken');
-    final String? idToken = await userCredential.user!.getIdToken();
-    final String email    = userCredential.user!.email ?? '';
-    final String name     = userCredential.user!.displayName ?? '';
+  final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
 
-    print('🔵 Step 4 — Envoyer à FastAPI');
-    final response = await http.post(
-      Uri.parse('${AppConstants.baseUrl}/auth/google'),
-      headers: {'Content-Type': 'application/json'},
-      body:    jsonEncode({'id_token': idToken}),
-    );
+  final googleAuth = googleUser.authentication;
 
-    if (response.statusCode != 200) {
-      throw Exception("Erreur serveur : ${response.body}");
-    }
+  final AuthCredential credential = GoogleAuthProvider.credential(
+    idToken: googleAuth.idToken,
+  );
 
-    final data = jsonDecode(response.body);
+  final UserCredential userCredential =
+      await _firebaseAuth.signInWithCredential(credential);
 
-    await _saveToken(data['access_token']);
-    await _saveUserData({'email': email, 'name': name});
+  final String? idToken = await userCredential.user!.getIdToken();
+  final String email    = userCredential.user!.email ?? '';
+  final String name     = userCredential.user!.displayName ?? '';
 
-    return data;
+  final response = await http.post(
+    Uri.parse('${AppConstants.baseUrl}/auth/google'),
+    headers: {'Content-Type': 'application/json'},
+    body:    jsonEncode({'id_token': idToken}),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception("Erreur serveur : ${response.body}");
   }
+
+  final data = jsonDecode(response.body);
+  await _saveToken(data['access_token']);
+  await _saveUserData({'email': email, 'name': name});
+
+  return data;
+}
 
   // ============================================================
   // 2. SAVE TOKEN — comme saveData() du prof

@@ -9,13 +9,6 @@ class LoginScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
 
-    // ─── Écouter les changements d'état ──────────────
-    if (authState.isAuthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacementNamed(context, '/scanner');
-      });
-    }
-
     // Erreur → Snackbar
     if (authState.error != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
